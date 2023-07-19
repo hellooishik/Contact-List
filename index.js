@@ -27,11 +27,6 @@ const contactList = [
   }
 ];
 
-// the applivation gets request will be redirected to here
-// the main domain makeov er guidance
-// the main server set will be redirect to here
-// the main module of this two enties will be redirected to the port 8001
-
 app.get('/practice', function(req, res) {
   return res.render('practice', {
     title: "Let us play with ejs"
@@ -51,7 +46,8 @@ app.get('/', function(req, res) {
         console.log("Error in fetching contacts from db", err);
         return res.status(500).send("Internal Server Error");
       });
-  });
+});
+
 app.post('/create-contact', function(req, res) {
   Contact.create({
     name: req.body.name,
@@ -65,13 +61,6 @@ app.post('/create-contact', function(req, res) {
     console.log('Error in creating a contact!', err);
     return res.redirect('back');
   });
-});
-
-app.listen(port, function(err) {
-  if (err) {
-    console.log("Error in running the server", err);
-  }
-  console.log('Yup! My Server is running on Port', port);
 });
 
 app.get('/delete-contact/', function(req, res) {
@@ -88,5 +77,48 @@ app.get('/delete-contact/', function(req, res) {
         console.log('Error in deleting the contact', err);
         return res.status(500).send('Internal Server Error');
       });
-  });
+});
+
+app.get('/update-contact/:id', function(req, res) {
+  const id = req.params.id;
+
+  Contact.findById(id)
+    .exec()
+    .then(contact => {
+      if (!contact) {
+        console.log('Contact not found');
+        return res.status(404).send('Contact not found');
+      }
+      return res.render('update-contact', { title: 'Update Contact', contact });
+    })
+    .catch(err => {
+      console.log('Error in fetching contact from db', err);
+      return res.status(500).send('Internal Server Error');
+    });
+});
   
+app.post('/update-contact', function(req, res) {
+    const id = req.body.id;
+    const updatedContact = {
+      name: req.body.name,
+      phone: req.body.phone
+    };
+  
+    Contact.findByIdAndUpdate(id, updatedContact)
+      .exec()
+      .then(() => {
+        console.log('Contact updated successfully');
+        return res.redirect('/');
+      })
+      .catch(err => {
+        console.log('Error in updating the contact', err);
+        return res.status(500).send('Internal Server Error');
+      });
+});
+
+app.listen(port, function(err) {
+  if (err) {
+    console.log("Error in running the server", err);
+  }
+  console.log('Yup! My Server is running on Port', port);
+});
